@@ -20,12 +20,16 @@ public abstract class Sensor {
     /* If the sensor is occupied or not. Initially it will not be occupied */
     protected boolean occupied;
     
+    /* Indicates if the sensor is selected in the GUI */
+    private boolean selected;
+    
     public Sensor() {
         this.left = null;
         this.right = null;
         this.back = null;
         this.toCentral = null;
         this.occupied = false;
+        this.selected = false;
     }
     
     public Sensor(Sensor left, Sensor right, Sensor back, Sensor toCentral) {
@@ -34,6 +38,7 @@ public abstract class Sensor {
         this.back = back;
         this.toCentral = toCentral;
         this.occupied = false;
+        this.selected = false;
     }
     
     /* To implement in virtual or real sensors */
@@ -97,6 +102,20 @@ public abstract class Sensor {
      */
     public void setToCentral(Sensor toCentral) {
         this.toCentral = toCentral;
+    }
+
+    /**
+     * @return the selected
+     */
+    public boolean isSelected() {
+        return selected;
+    }
+
+    /**
+     * @param selected the selected to set
+     */
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
     
 }

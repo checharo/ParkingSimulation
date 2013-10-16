@@ -69,7 +69,11 @@ import javax.swing.JPanel;
                 } else {
                 /* Paint a sensor according to its properties */
                     Sensor sensor = matrix[i][j];
-                    g.setColor(new Color(0, 0, 0));
+                    if (sensor.isSelected())
+                        g.setColor(new Color(0, 0, 150));
+                    else
+                        g.setColor(new Color(0, 0, 0));
+                    
                     g.fillRect(x + 3, y + 3, sqWidth - 6, sqHeight - 6);
                     
                     int miniWidth = sqWidth / 5;
@@ -86,6 +90,43 @@ import javax.swing.JPanel;
             }
         }
         
+    }
+    
+    /**
+     * Selects a sensor from the Matrix given two pixel coordinates in the canvas
+     * @param x
+     * @param y
+     * @return The reference to the Sensor. null if there is no Sensor there.
+     */
+    public Sensor selectSensor(int x, int y) {
+        
+        /* Determine the size of each square unit in the matrix */
+        int sqWidth = width / matrix[0].length;
+        int sqHeight = height / matrix.length;
+        
+        x = x / sqWidth;
+        y = y / sqHeight;
+        
+        return matrix[y][x];
+    }
+    
+    /**
+     * Returns the two coordinates of the sensor specified in the array.
+     * @param s The Sensor to determine
+     * @return [x,y] or null if the Sensor is not found in the Matrix.
+     */
+    public int[] determineCoordinates(Sensor s) {
+     
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                if (matrix[i][j] == s) {
+                    int[] res = {i, j};
+                    return res;
+                }
+            }
+        }
+        
+        return null;
     }
     
 }

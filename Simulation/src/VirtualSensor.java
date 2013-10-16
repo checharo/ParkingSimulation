@@ -225,6 +225,11 @@ public class VirtualSensor extends Sensor {
             }
         }
                 
-    } 
+    }
+    
+    @Override
+    public String toString() {
+        return "VirtualSensor";
+    }
     
 }
