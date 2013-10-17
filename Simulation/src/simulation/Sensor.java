@@ -22,26 +22,42 @@ public abstract class Sensor {
     /* If the sensor is occupied or not. Initially it will not be occupied */
     protected boolean occupied;
     
+
     public Sensor() {
+
+    /* Indicates if the sensor is selected in the GUI */
+    protected boolean selected;
+    
+    /* Is the id of the sensor, for virtual the ij value of the matrix, or
+     * real, the address of the sensor. 
+     */
+    protected String id;
+    
+    public Sensor(String id) {
         this.left = null;
         this.right = null;
         this.back = null;
         this.toCentral = null;
         this.occupied = false;
+        this.selected = false;
+        this.id = id;
     }
     
-    public Sensor(Sensor left, Sensor right, Sensor back, Sensor toCentral) {
+    public Sensor(String id, Sensor left, Sensor right, Sensor back, Sensor toCentral) {
         this.left = left;
         this.right = right;
         this.back = back;
         this.toCentral = toCentral;
         this.occupied = false;
+        this.selected = false;
+        this.id = id;
     }
     
     /* To implement in virtual or real sensors */
     public abstract void setLED(int ledNumber, Color ledColor);
     public abstract Color[] getLEDs();
     public abstract void sendMessage(Sensor s, Message m);
+    public abstract void sendReply(Sensor s, Message m);
     public abstract void receiveMessage(Message m);
     public abstract void sendToCentral(Message m);
 
@@ -99,6 +115,34 @@ public abstract class Sensor {
      */
     public void setToCentral(Sensor toCentral) {
         this.toCentral = toCentral;
+    }
+
+    /**
+     * @return the selected
+     */
+    public boolean isSelected() {
+        return selected;
+    }
+
+    /**
+     * @param selected the selected to set
+     */
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    /**
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(String id) {
+        this.id = id;
     }
     
 }

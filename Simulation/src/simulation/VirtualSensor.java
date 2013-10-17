@@ -2,6 +2,7 @@ package simulation;
 
 
 import java.awt.Color;
+import java.util.LinkedList;
 import java.util.Queue;
 
 /**
@@ -31,8 +32,8 @@ public class VirtualSensor extends Sensor {
      * Initializes a virtual sensor with no connections. The initial state of
      * light will be 50 meaning there is no car.
      */
-    public VirtualSensor() {
-        super();
+    public VirtualSensor(String id) {
+        super(id);
         leds = new Color[8];
         for (int i = 0; i < 8; i++) {
             leds[i] = OFF;
@@ -40,6 +41,7 @@ public class VirtualSensor extends Sensor {
         leds[7] = Color.GREEN;
         currentLight = 50;
         previousLight = 50;
+        messages = new LinkedList<Message>();
     }
     
     /**
@@ -50,8 +52,9 @@ public class VirtualSensor extends Sensor {
      * @param back The sensor position behind this one (i + 1) or (i - 1).
      * @param toCentral The sensor that will get a message to Central
      */
-    public VirtualSensor(Sensor left, Sensor right, Sensor back, Sensor toCentral) {
-        super(left, right, back, toCentral);
+    public VirtualSensor(String id, Sensor toCentral, Sensor left, Sensor right, 
+            Sensor back) {
+        super(id, left, right, back, toCentral);
         leds = new Color[8];
         for (int i = 0; i < 8; i++) {
             leds[i] = OFF;
@@ -59,6 +62,7 @@ public class VirtualSensor extends Sensor {
         leds[7] = Color.GREEN;
         currentLight = 50;
         previousLight = 50;
+        messages = new LinkedList<Message>();
     }
     
     @Override
@@ -80,10 +84,30 @@ public class VirtualSensor extends Sensor {
      */
     @Override
     public synchronized void sendMessage(Sensor s, Message m) {
+        System.out.println(System.currentTimeMillis() + " " + id + " -> " + s.getId() + " " + m.getHeader());
         Color previousColor = leds[6];
         this.setLED(6, SENDING);
-        //try { Thread.sleep(300); } catch (InterruptedException ie) {}
+        try { Thread.sleep(300); } catch (InterruptedException ie) {}
         m.push(this);
+        System.out.println(System.currentTimeMillis() + " " + id + " Calling receive message");
+        s.receiveMessage(m);
+        
+        this.setLED(6, previousColor);
+    }
+    
+    /**
+     * Sends a reply to the corresponding neighbor. Since only Virtual Sensors
+     * can be neighbors to Virtual Sensors then it directly calls receiveMessage().
+     * @param s
+     * @param m 
+     */
+    @Override
+    public synchronized void sendReply(Sensor s, Message m) {
+        System.out.println(System.currentTimeMillis() + " " + id + " -> " + s.getId() + " " + m.getHeader());
+        Color previousColor = leds[6];
+        this.setLED(6, SENDING);
+        try { Thread.sleep(300); } catch (InterruptedException ie) {}
+        System.out.println(System.currentTimeMillis() + " " + id + " calling receive message");
         s.receiveMessage(m);
         
         this.setLED(6, previousColor);
@@ -97,8 +121,10 @@ public class VirtualSensor extends Sensor {
      */
     @Override
     public synchronized void receiveMessage(Message m) {
+        System.out.println(System.currentTimeMillis() + " " + id + " receives message " + m.getHeader());
         messages.add(m);
-        notify(); 
+        eventThread.notifyEvent();
+        System.out.println(System.currentTimeMillis() + " " + "After notifyEvent");
     }
     
     @Override
@@ -113,15 +139,27 @@ public class VirtualSensor extends Sensor {
         return leds;
     }
     
+    public void setCurrentLight(int currentLight) {
+        this.currentLight = currentLight;
+    }
+    
+    public int getCurrentLight() {
+        return currentLight;
+    }
+    
+    public void setCentral(Central central) {
+        this.central = central;
+    }
+    
     /**
      * Processes messages found in the message queue
      * @param m Message to process
      */
     public synchronized void processMessage(Message m) {
+        System.out.println(System.currentTimeMillis() + " " + id + " processes " + m.getHeader());
         Color previousColor = leds[6];
         this.setLED(6, RECEIVING);
-        //try { Thread.sleep(300); } catch (InterruptedException ie) {}
-        
+        try { Thread.sleep(300); } catch (InterruptedException ie) {}
         if (m.getHeader().startsWith("reply")) {
             Sensor top = m.pop();
             if (top == null) {
@@ -129,7 +167,7 @@ public class VirtualSensor extends Sensor {
                 if (m.getHeader().equals("reply-error")) {
                     /* Message couldn't reach central, display error */
                     this.setLED(6, ERROR);
-                    System.out.println("Could not reach central: " + 
+                    System.out.println(System.currentTimeMillis() + " " + "Could not reach central: " + 
                             m.getHeader() + ":" + m.getContent());
                 } else if (m.getHeader().equals("reply-ok")) {
                     /* Else nothing special should happen */
@@ -137,12 +175,12 @@ public class VirtualSensor extends Sensor {
                 } else {
                     /* Unknown message */
                     this.setLED(6, ERROR);
-                    System.out.println("Unkown message received: " + 
+                    System.out.println(System.currentTimeMillis() + " " + "Unkown message received: " + 
                             m.getHeader() + ":" + m.getContent());
                 }
             } else {
                 /* Forward the reply to the corresponding Sensor */
-                sendMessage(top, m);
+                sendReply(top, m);
                 this.setLED(6, previousColor);
             }
         } else if (m.getHeader().startsWith("tocentral")) {
@@ -151,7 +189,7 @@ public class VirtualSensor extends Sensor {
         } else {
             /* If an unkown message is received, reply to sender with error */
             Sensor top = m.pop();
-            sendMessage(top, new Message("reply-error", "unkownmessage", this));
+            sendReply(top, new Message("reply-error", "unkownmessage"));
             this.setLED(6, previousColor);
         }
     }
@@ -178,11 +216,18 @@ public class VirtualSensor extends Sensor {
         return eventThread;
     }
     
+    /**
+     * Necessary to notify the event thread from another class.
+     */
+    public synchronized void notifyEvent() {
+        eventThread.notifyEvent();
+    }
+    
     /* Class that implements the thread that is listening to simulated events. 
      * The events are generated by the user using the GUI. This thread is notified
      * when the user changes the light value for example, simulating the event
      * of real light changing in a real sensor */
-    private class EventThread extends Thread {
+    public class EventThread extends Thread {
         
         VirtualSensor owner;
         
@@ -204,29 +249,49 @@ public class VirtualSensor extends Sensor {
         
         private synchronized void waitForEvent() throws InterruptedException {
             
-            wait();
+            if (messages.size() == 0) {
+                /* If there are messages do not wait */
+                System.out.println(System.currentTimeMillis() + " " + owner.getId() + " waits");
+                wait();
+                System.out.println(System.currentTimeMillis() + " " + owner.getId() + " is notified");
+            }
             /* Event has happened */
             /* Evaluate if the light has changed */
             boolean changed = (new EvaluateLight()).evaluateLight(currentLight, previousLight);
             if (changed) {
                 occupied = !occupied;
                 if (occupied) {
-                    sendToCentral(new Message("tocentral-parkingstate", "occupied", owner));
+                    sendToCentral(new Message("tocentral-parkingstate", "occupied"));
                     setLED(7, Color.RED);
                 } else {
-                    sendToCentral(new Message("tocentral-parkingstate", "vacant", owner));
+                    sendToCentral(new Message("tocentral-parkingstate", "vacant"));
                     setLED(7, Color.GREEN);
                 }
             }
             previousLight = currentLight; 
             
             /* Process messages in the queue */
-            Message m = null;
-            while ((m = messages.poll()) != null) {
+            Message m = messages.poll();
+            if (m != null)            
                 owner.processMessage(m);
-            }
+
         }
+        
+        public synchronized void notifyEvent() {
+            System.out.println(System.currentTimeMillis() + " " + "beforeNotify");
+            notify();
+            System.out.println(System.currentTimeMillis() + " " + "afterNotify");
+        }
+<<<<<<< HEAD:Simulation/src/simulation/VirtualSensor.java
                 
     } 
+=======
+    }
+    
+    @Override
+    public String toString() {
+        return "VirtualSensor" + getId();
+    }
+>>>>>>> 6f07071c8ed4a0fa6ac996be29242052fdd4ef0a:Simulation/src/VirtualSensor.java
     
 }

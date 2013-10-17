@@ -73,6 +73,24 @@
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
               <EmptySpace min="0" pref="716" max="32767" attributes="0"/>
+              <Group type="102" attributes="0">
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Group type="102" alignment="0" attributes="0">
+                          <Component id="lblSensor" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="lblSensorValue" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <Group type="102" alignment="0" attributes="0">
+                          <Component id="lblLight" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="txtLight" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="btnLight" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                  </Group>
+                  <EmptySpace pref="472" max="32767" attributes="0"/>
+              </Group>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
@@ -81,6 +99,55 @@
           </Group>
         </DimensionLayout>
       </Layout>
+              <Group type="102" alignment="0" attributes="0">
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="lblSensor" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblSensorValue" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="lblLight" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="txtLight" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="btnLight" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace min="0" pref="95" max="32767" attributes="0"/>
+              </Group>
+          </Group>
+        </DimensionLayout>
+      </Layout>
+      <SubComponents>
+        <Component class="javax.swing.JLabel" name="lblSensor">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Sensor:"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="lblSensorValue">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="&lt;none&gt;"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="lblLight">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Light:"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JTextField" name="txtLight">
+          <Properties>
+            <Property name="columns" type="int" value="5"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="setLight"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JButton" name="btnLight">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="set light"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="setLight"/>
+          </Events>
+        </Component>
+      </SubComponents>
     </Container>
     <Container class="javax.swing.JPanel" name="pnlParking">
       <Properties>
