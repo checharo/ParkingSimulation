@@ -17,18 +17,11 @@ public class Message {
         this.stack = new Vector();
     }
     
-    /* Sends a message without sender, (intended for central) */
+    /* Create a new Message with content */
     public Message(String header, String content) {
         this.header = header;
         this.content = content;
         this.stack = new Vector();
-    }
-    
-    public Message(String header, String content, Sensor sender) {
-        this.header = header;
-        this.content = content;
-        this.stack = new Vector();
-        stack.add(sender);
     }
     
     /**
@@ -75,5 +68,8 @@ public class Message {
             return (Sensor) stack.remove(stack.size() - 1);
     }
     
+    public void printStack() {
+        System.out.println(stack);
+    }
     
 }

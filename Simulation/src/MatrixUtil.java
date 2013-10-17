@@ -66,7 +66,7 @@ public class MatrixUtil {
             for (int j = 0; j < pre[i].length; j++) {
                 pre[i][j] = row[j];
                 if (!pre[i][j].equals("-")) {
-                    res[i][j] = new VirtualSensor();
+                    res[i][j] = new VirtualSensor("(" + i + "," + j + ")");
                 } else {
                     res[i][j] = null;
                 }
@@ -85,7 +85,7 @@ public class MatrixUtil {
                 Sensor ij = res[i][j];
                 if (ij == null) continue;
                 
-                int proximity = -1;
+                int proximity;
                 proximity = Integer.parseInt(pre[i][j]);
                 if (proximity == 0) {
                     ij.setToCentral(ij);
@@ -122,7 +122,12 @@ public class MatrixUtil {
                         int bprox = Integer.parseInt(pre[i + 1][j]);
                         if (bprox < proximity) ij.setToCentral(back);
                     } 
-                } catch (ArrayIndexOutOfBoundsException aioobe) {}     
+                } catch (ArrayIndexOutOfBoundsException aioobe) {} 
+                
+                /* Start the event thread of the Virtual Sensors */
+                if (ij instanceof VirtualSensor) {
+                    ((VirtualSensor) ij).startEventThread();
+                }
             }
         }
         

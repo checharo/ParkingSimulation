@@ -62,8 +62,19 @@ public class MainFrame extends javax.swing.JFrame {
         canvas.setLocation(2, 2);
         pnlParking.add(canvas);
         
-        /* Initiate the central logic of the Sensor Netork */
+        /* Initiate the central logic of the Sensor Netork and pass the reference */
         central = new Central(matrix, this);
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                if (matrix[i][j] instanceof VirtualSensor) {
+                    VirtualSensor vsensor = (VirtualSensor) matrix[i][j];
+                    vsensor.setCentral(central);
+                }
+            }
+        }
+        
+        /* Disable certain GUI elements until appropiate */
+        reloadSensorProperties();
     }
 
     /**
@@ -78,6 +89,9 @@ public class MainFrame extends javax.swing.JFrame {
         pnlOptions = new javax.swing.JPanel();
         lblSensor = new javax.swing.JLabel();
         lblSensorValue = new javax.swing.JLabel();
+        lblLight = new javax.swing.JLabel();
+        txtLight = new javax.swing.JTextField();
+        btnLight = new javax.swing.JButton();
         pnlParking = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -99,16 +113,40 @@ public class MainFrame extends javax.swing.JFrame {
 
         lblSensorValue.setText("<none>");
 
+        lblLight.setText("Light:");
+
+        txtLight.setColumns(5);
+        txtLight.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                setLight(evt);
+            }
+        });
+
+        btnLight.setText("set light");
+        btnLight.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                setLight(evt);
+            }
+        });
+
         org.jdesktop.layout.GroupLayout pnlOptionsLayout = new org.jdesktop.layout.GroupLayout(pnlOptions);
         pnlOptions.setLayout(pnlOptionsLayout);
         pnlOptionsLayout.setHorizontalGroup(
             pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(pnlOptionsLayout.createSequentialGroup()
                 .addContainerGap()
-                .add(lblSensor)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(lblSensorValue)
-                .addContainerGap(587, Short.MAX_VALUE))
+                .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(pnlOptionsLayout.createSequentialGroup()
+                        .add(lblSensor)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(lblSensorValue))
+                    .add(pnlOptionsLayout.createSequentialGroup()
+                        .add(lblLight)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(txtLight, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(btnLight)))
+                .addContainerGap(472, Short.MAX_VALUE))
         );
         pnlOptionsLayout.setVerticalGroup(
             pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -116,7 +154,12 @@ public class MainFrame extends javax.swing.JFrame {
                 .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(lblSensor)
                     .add(lblSensorValue))
-                .add(0, 131, Short.MAX_VALUE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(lblLight)
+                    .add(txtLight, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(btnLight))
+                .add(0, 95, Short.MAX_VALUE))
         );
 
         pnlParking.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -180,6 +223,46 @@ public class MainFrame extends javax.swing.JFrame {
         reloadSensorProperties();
     }//GEN-LAST:event_canvasClicked
 
+    private void setLight(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setLight
+        
+        if (selectedSensor == null) {
+            JOptionPane.showMessageDialog(this, 
+                "Please select a Virtual Sensor.", 
+                "Action Not Allowed", JOptionPane.ERROR_MESSAGE);
+        }
+        
+        int light;
+        try {
+            light = Integer.parseInt(txtLight.getText());
+        } catch (NumberFormatException nfe) {
+            JOptionPane.showMessageDialog(this, 
+                    "Please set a valid integer for the light value", 
+                    "Number Format Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        txtLight.setText("");
+        
+        if (selectedSensor instanceof VirtualSensor) {
+            VirtualSensor vsensor = (VirtualSensor) selectedSensor;
+            vsensor.setCurrentLight(light);
+            System.out.println("isAlive?");
+            if (vsensor.getEventThread() != null 
+                    && vsensor.getEventThread().isAlive()) {
+                System.out.println("before notify");
+                vsensor.notifyEvent();
+                System.out.println("after notify");
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "The Virtual Sensor is not running. Please restart application.", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, 
+                    "Cannot set the light value for a Real Sensor.", 
+                    "Action Not Allowed", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_setLight
+
     public synchronized void repaintCanvas() {
         canvas.repaint();
     }
@@ -189,13 +272,28 @@ public class MainFrame extends javax.swing.JFrame {
         
         if (selectedSensor == null) {
             lblSensorValue.setText("<none>");
+            txtLight.setText("");
+            txtLight.setEnabled(false);
+            btnLight.setEnabled(false);
         } else {
             int[] coordinates = canvas.determineCoordinates(selectedSensor);
             if (coordinates == null) {
                 lblSensorValue.setText("<error>");
+                txtLight.setText("");
+                txtLight.setEnabled(false);
+                btnLight.setEnabled(false);
             } else {
-                lblSensorValue.setText(selectedSensor.toString() + "(" 
-                    + coordinates[0] + "," + coordinates[1] + ")");
+                lblSensorValue.setText(selectedSensor.toString());
+                if (selectedSensor instanceof VirtualSensor) {
+                    VirtualSensor vsensor = (VirtualSensor) selectedSensor;
+                    txtLight.setText(vsensor.getCurrentLight() + "");
+                    txtLight.setEnabled(true);
+                    btnLight.setEnabled(true);
+                } else {
+                    txtLight.setText("");
+                    txtLight.setEnabled(false);
+                    btnLight.setEnabled(false);
+                }
             }
         }
     }
@@ -236,10 +334,13 @@ public class MainFrame extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnLight;
+    private javax.swing.JLabel lblLight;
     private javax.swing.JLabel lblSensor;
     private javax.swing.JLabel lblSensorValue;
     private javax.swing.JPanel pnlOptions;
     private javax.swing.JPanel pnlParking;
+    private javax.swing.JTextField txtLight;
     // End of variables declaration//GEN-END:variables
 
 }
