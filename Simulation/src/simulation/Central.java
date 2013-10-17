@@ -1,3 +1,5 @@
+package simulation;
+
 
 /**
  * Represents the central control of the network. 

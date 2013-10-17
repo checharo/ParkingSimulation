@@ -1,3 +1,5 @@
+package simulation;
+
 
 import java.awt.Color;
 import java.io.FileNotFoundException;
@@ -15,9 +17,6 @@ public class MainFrame extends javax.swing.JFrame {
     private ParkingCanvas canvas;
     /* The central logic for controlling the Sensor Network */
     private Central central;
-    
-    /* The selected Sensor by the user, null at the beginning */
-    private Sensor selectedSensor;
     
     /**
      * Creates new form MainFrame
@@ -76,15 +75,12 @@ public class MainFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         pnlOptions = new javax.swing.JPanel();
-        lblSensor = new javax.swing.JLabel();
-        lblSensorValue = new javax.swing.JLabel();
         pnlParking = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Virtual Parking Lot");
         setBackground(new java.awt.Color(102, 102, 102));
         setBounds(new java.awt.Rectangle(200, 100, 0, 0));
-        setLocation(new java.awt.Point(200, 50));
         setName("mainFrame"); // NOI18N
         setPreferredSize(new java.awt.Dimension(720, 720));
         addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -95,28 +91,15 @@ public class MainFrame extends javax.swing.JFrame {
 
         pnlOptions.setBorder(javax.swing.BorderFactory.createTitledBorder("Options"));
 
-        lblSensor.setText("Sensor:");
-
-        lblSensorValue.setText("<none>");
-
         org.jdesktop.layout.GroupLayout pnlOptionsLayout = new org.jdesktop.layout.GroupLayout(pnlOptions);
         pnlOptions.setLayout(pnlOptionsLayout);
         pnlOptionsLayout.setHorizontalGroup(
             pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(pnlOptionsLayout.createSequentialGroup()
-                .addContainerGap()
-                .add(lblSensor)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(lblSensorValue)
-                .addContainerGap(587, Short.MAX_VALUE))
+            .add(0, 716, Short.MAX_VALUE)
         );
         pnlOptionsLayout.setVerticalGroup(
             pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(pnlOptionsLayout.createSequentialGroup()
-                .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(lblSensor)
-                    .add(lblSensorValue))
-                .add(0, 131, Short.MAX_VALUE))
+            .add(0, 47, Short.MAX_VALUE)
         );
 
         pnlParking.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -171,33 +154,14 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void canvasClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_canvasClicked
         
-        /* Deselect previous sensor */
-        if (selectedSensor != null) selectedSensor.setSelected(false);
-        /* Select new sensor */
-        selectedSensor = canvas.selectSensor(evt.getX(), evt.getY());
-        if (selectedSensor != null) selectedSensor.setSelected(true);
-        repaintCanvas();
-        reloadSensorProperties();
+        int x = evt.getX();
+        int y = evt.getY();
+        
+        System.out.println(x + " " + y);
     }//GEN-LAST:event_canvasClicked
 
     public synchronized void repaintCanvas() {
         canvas.repaint();
-    }
-    
-    /* Reloads the controls with the current Sensor selected */
-    private void reloadSensorProperties() {
-        
-        if (selectedSensor == null) {
-            lblSensorValue.setText("<none>");
-        } else {
-            int[] coordinates = canvas.determineCoordinates(selectedSensor);
-            if (coordinates == null) {
-                lblSensorValue.setText("<error>");
-            } else {
-                lblSensorValue.setText(selectedSensor.toString() + "(" 
-                    + coordinates[0] + "," + coordinates[1] + ")");
-            }
-        }
     }
     
     /**
@@ -236,8 +200,6 @@ public class MainFrame extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel lblSensor;
-    private javax.swing.JLabel lblSensorValue;
     private javax.swing.JPanel pnlOptions;
     private javax.swing.JPanel pnlParking;
     // End of variables declaration//GEN-END:variables
