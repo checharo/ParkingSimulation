@@ -22,11 +22,10 @@ public abstract class Sensor {
     /* If the sensor is occupied or not. Initially it will not be occupied */
     protected boolean occupied;
     
-
-    public Sensor() {
-
     /* Indicates if the sensor is selected in the GUI */
     protected boolean selected;
+
+    public Sensor() {}
     
     /* Is the id of the sensor, for virtual the ij value of the matrix, or
      * real, the address of the sensor. 
