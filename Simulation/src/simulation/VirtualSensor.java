@@ -282,16 +282,11 @@ public class VirtualSensor extends Sensor {
             notify();
             System.out.println(System.currentTimeMillis() + " " + "afterNotify");
         }
-<<<<<<< HEAD:Simulation/src/simulation/VirtualSensor.java
-                
-    } 
-=======
     }
     
     @Override
     public String toString() {
         return "VirtualSensor" + getId();
     }
->>>>>>> 6f07071c8ed4a0fa6ac996be29242052fdd4ef0a:Simulation/src/VirtualSensor.java
     
 }

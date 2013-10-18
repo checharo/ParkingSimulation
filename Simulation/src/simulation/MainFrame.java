@@ -18,6 +18,9 @@ public class MainFrame extends javax.swing.JFrame {
     /* The central logic for controlling the Sensor Network */
     private Central central;
     
+    /* The selected Sensor by the user, null at the beginning */
+    private Sensor selectedSensor;
+    
     /**
      * Creates new form MainFrame
      */
@@ -97,6 +100,7 @@ public class MainFrame extends javax.swing.JFrame {
         setTitle("Virtual Parking Lot");
         setBackground(new java.awt.Color(102, 102, 102));
         setBounds(new java.awt.Rectangle(200, 100, 0, 0));
+        setLocation(new java.awt.Point(200, 50));
         setName("mainFrame"); // NOI18N
         setPreferredSize(new java.awt.Dimension(720, 720));
         addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -131,11 +135,6 @@ public class MainFrame extends javax.swing.JFrame {
         pnlOptions.setLayout(pnlOptionsLayout);
         pnlOptionsLayout.setHorizontalGroup(
             pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 716, Short.MAX_VALUE)
-        );
-        pnlOptionsLayout.setVerticalGroup(
-            pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 47, Short.MAX_VALUE)
             .add(pnlOptionsLayout.createSequentialGroup()
                 .addContainerGap()
                 .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -217,10 +216,13 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void canvasClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_canvasClicked
         
-        int x = evt.getX();
-        int y = evt.getY();
-        
-        System.out.println(x + " " + y);
+        /* Deselect previous sensor */
+        if (selectedSensor != null) selectedSensor.setSelected(false);
+        /* Select new sensor */
+        selectedSensor = canvas.selectSensor(evt.getX(), evt.getY());
+        if (selectedSensor != null) selectedSensor.setSelected(true);
+        repaintCanvas();
+        reloadSensorProperties();
     }//GEN-LAST:event_canvasClicked
 
     private void setLight(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setLight
@@ -344,3 +346,4 @@ public class MainFrame extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 
 }
+
