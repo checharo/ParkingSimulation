@@ -1,4 +1,4 @@
 ParkingSimulation
 =================
 
-A parking simulation with virtual and SunSPOT sensors
+A parking lot simulation with virtual and SunSPOT sensors
