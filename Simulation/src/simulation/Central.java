@@ -48,14 +48,12 @@ public class Central {
         if (m.getHeader().equals("tocentral-parkingstate")) {
             if (m.getContent().equals("vacant")) {
                 /* One space is liberated and a additional car is circulating */
-                spaces++;
                 cars++;
                 mainFrame.refreshState();
                 m.setHeader("reply-ok");
                 m.setContent("");
             } else if (m.getContent().equals("occupied")) {
                 /* One space is occupied and one less car is circulating */
-                spaces--;
                 cars--;
                 mainFrame.refreshState();
                 m.setHeader("reply-ok");
@@ -75,7 +73,28 @@ public class Central {
     public synchronized void refreshCanvas() {
         mainFrame.repaintCanvas();
     }
-
+    
+    /**
+     * Simulates a car entering the parking lot 
+     */
+    public synchronized void carEnters() {
+        cars++;
+        spaces--;
+        mainFrame.refreshState();
+    }
+    
+    /**
+     * Simulates a car exiting the parking lot 
+     * @throws NumberFormatException If there are no more cars to take out.
+     */
+    public synchronized void carExits() throws NumberFormatException {
+        if (cars <= 0)
+            throw new NumberFormatException("No more cars to take out.");
+        cars--;
+        spaces++;
+        mainFrame.refreshState();
+    }
+    
     /**
      * @return the spaces
      */

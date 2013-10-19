@@ -1,6 +1,7 @@
 package simulation;
 
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 
 /**
@@ -282,10 +283,13 @@ public class VirtualSensor extends Sensor {
             previousLight = currentLight; 
             
             /* Process messages in the queue */
-            Message m = messages.poll();
-            if (m != null)            
-                owner.processMessage(m);
-
+            try {
+                Message m = messages.poll();
+                if (m != null)            
+                    owner.processMessage(m);
+            } catch (NoSuchElementException nsee) {
+                /* Just continue with execution */
+            }
         }
         
         public synchronized void notifyEvent() {

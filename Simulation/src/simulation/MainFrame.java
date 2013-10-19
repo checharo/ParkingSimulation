@@ -17,6 +17,8 @@ public class MainFrame extends javax.swing.JFrame {
     private ParkingCanvas canvas;
     /* The central logic for controlling the Sensor Network */
     private Central central;
+    /* The thread that generates input randomly */
+    private RandomSimulator randomSimulator;
     
     /* The selected Sensor by the user, null at the beginning */
     private Sensor selectedSensor;
@@ -42,6 +44,8 @@ public class MainFrame extends javax.swing.JFrame {
                     + "lot file to read (csv). If left empty parking.csv will "
                     + "be read.", "Parking Lot Simulator", 
                     JOptionPane.QUESTION_MESSAGE);
+            /* If user selects cancel */
+            if (file == null) System.exit(0); 
             if (file.equals("")) file = "parking.csv";
             matrix = MatrixUtil.readMatrix(file);
         } catch (FileNotFoundException fnfe) {
@@ -79,6 +83,8 @@ public class MainFrame extends javax.swing.JFrame {
         reloadSensorProperties();
         /* Set the value for available spaces and cars circulating */
         refreshState();
+        /* Instantiate the random simulator but do not run it */
+        randomSimulator = new RandomSimulator(central);
     }
 
     /**
@@ -91,15 +97,22 @@ public class MainFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         pnlOptions = new javax.swing.JPanel();
+        jPanel1 = new javax.swing.JPanel();
         lblSensor = new javax.swing.JLabel();
         lblSensorValue = new javax.swing.JLabel();
         lblLight = new javax.swing.JLabel();
         txtLight = new javax.swing.JTextField();
         btnLight = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
         lblAvailableSpaces = new javax.swing.JLabel();
         lblAvailableSpacesValue = new javax.swing.JLabel();
         lblCarsCirculating = new javax.swing.JLabel();
         lblCarsCirculatingValue = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        btnInsertCar = new javax.swing.JButton();
+        btnCarExits = new javax.swing.JButton();
+        lblRandomSimulator = new javax.swing.JLabel();
+        btnRandomSimulator = new javax.swing.JButton();
         pnlParking = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -137,6 +150,41 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
+        org.jdesktop.layout.GroupLayout jPanel1Layout = new org.jdesktop.layout.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jPanel1Layout.createSequentialGroup()
+                        .add(lblSensor)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(lblSensorValue)
+                        .add(0, 0, Short.MAX_VALUE))
+                    .add(jPanel1Layout.createSequentialGroup()
+                        .add(lblLight)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(txtLight, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .add(btnLight)))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(lblSensor)
+                    .add(lblSensorValue))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(lblLight)
+                    .add(txtLight, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(btnLight))
+                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
         lblAvailableSpaces.setText("Available Spaces");
 
         lblAvailableSpacesValue.setFont(new java.awt.Font("Lucida Grande", 0, 24)); // NOI18N
@@ -152,50 +200,109 @@ public class MainFrame extends javax.swing.JFrame {
         lblCarsCirculatingValue.setText("0");
         lblCarsCirculatingValue.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
+        org.jdesktop.layout.GroupLayout jPanel2Layout = new org.jdesktop.layout.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(lblAvailableSpaces, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .add(lblAvailableSpacesValue, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, lblCarsCirculating, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel2Layout.createSequentialGroup()
+                .add(0, 0, Short.MAX_VALUE)
+                .add(lblCarsCirculatingValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 104, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(lblAvailableSpaces)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(lblAvailableSpacesValue)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(lblCarsCirculating)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(lblCarsCirculatingValue)
+                .addContainerGap(13, Short.MAX_VALUE))
+        );
+
+        btnInsertCar.setText("Insert car");
+        btnInsertCar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnInsertCarActionPerformed(evt);
+            }
+        });
+
+        btnCarExits.setText("Remove car");
+        btnCarExits.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCarExitsActionPerformed(evt);
+            }
+        });
+
+        lblRandomSimulator.setText("Random Simulator");
+
+        btnRandomSimulator.setText("Turn On");
+        btnRandomSimulator.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRandomSimulatorActionPerformed(evt);
+            }
+        });
+
+        org.jdesktop.layout.GroupLayout jPanel3Layout = new org.jdesktop.layout.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanel3Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jPanel3Layout.createSequentialGroup()
+                        .add(jPanel3Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(btnInsertCar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .add(btnCarExits, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addContainerGap())
+                    .add(jPanel3Layout.createSequentialGroup()
+                        .add(6, 6, 6)
+                        .add(jPanel3Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
+                            .add(lblRandomSimulator, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .add(btnRandomSimulator, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanel3Layout.createSequentialGroup()
+                .add(btnInsertCar)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(btnCarExits)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(lblRandomSimulator)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(btnRandomSimulator)
+                .add(0, 0, Short.MAX_VALUE))
+        );
+
         org.jdesktop.layout.GroupLayout pnlOptionsLayout = new org.jdesktop.layout.GroupLayout(pnlOptions);
         pnlOptions.setLayout(pnlOptionsLayout);
         pnlOptionsLayout.setHorizontalGroup(
             pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(org.jdesktop.layout.GroupLayout.TRAILING, pnlOptionsLayout.createSequentialGroup()
                 .addContainerGap()
-                .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(pnlOptionsLayout.createSequentialGroup()
-                        .add(lblSensor)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(lblSensorValue))
-                    .add(pnlOptionsLayout.createSequentialGroup()
-                        .add(lblLight)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(txtLight, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(btnLight)))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 362, Short.MAX_VALUE)
-                .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
-                    .add(lblAvailableSpaces, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(lblAvailableSpacesValue, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, lblCarsCirculating, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, lblCarsCirculatingValue, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .add(jPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 207, Short.MAX_VALUE)
+                .add(jPanel3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jPanel2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         pnlOptionsLayout.setVerticalGroup(
             pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(pnlOptionsLayout.createSequentialGroup()
-                .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(lblSensor)
-                    .add(lblSensorValue)
-                    .add(lblAvailableSpaces))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                        .add(lblLight)
-                        .add(txtLight, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .add(btnLight))
-                    .add(lblAvailableSpacesValue))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(lblCarsCirculating)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(lblCarsCirculatingValue)
-                .add(0, 37, Short.MAX_VALUE))
+                    .add(jPanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(jPanel3, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(pnlOptionsLayout.createSequentialGroup()
+                        .add(jPanel2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .add(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
 
         pnlParking.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -296,6 +403,31 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_setLight
 
+    private void btnInsertCarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInsertCarActionPerformed
+        central.carEnters();
+    }//GEN-LAST:event_btnInsertCarActionPerformed
+
+    private void btnCarExitsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCarExitsActionPerformed
+        try {
+            central.carExits();
+        } catch (NumberFormatException nfe) {
+            JOptionPane.showMessageDialog(this, nfe.getMessage(), 
+                "Operation Not Allowed", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnCarExitsActionPerformed
+
+    private void btnRandomSimulatorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRandomSimulatorActionPerformed
+        if (!randomSimulator.isAlive()) {
+            randomSimulator.start();
+            btnRandomSimulator.setText("Turn Off");
+        } else {
+            randomSimulator.interrupt();
+            btnRandomSimulator.setText("Turn On");
+            /* Create new Thread for a future restart */
+            randomSimulator = new RandomSimulator(central);
+        }
+    }//GEN-LAST:event_btnRandomSimulatorActionPerformed
+
     /**
      * Refreshes the label for available spaces and cars circulating
      */
@@ -376,12 +508,19 @@ public class MainFrame extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCarExits;
+    private javax.swing.JButton btnInsertCar;
     private javax.swing.JButton btnLight;
+    private javax.swing.JButton btnRandomSimulator;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JLabel lblAvailableSpaces;
     private javax.swing.JLabel lblAvailableSpacesValue;
     private javax.swing.JLabel lblCarsCirculating;
     private javax.swing.JLabel lblCarsCirculatingValue;
     private javax.swing.JLabel lblLight;
+    private javax.swing.JLabel lblRandomSimulator;
     private javax.swing.JLabel lblSensor;
     private javax.swing.JLabel lblSensorValue;
     private javax.swing.JPanel pnlOptions;
