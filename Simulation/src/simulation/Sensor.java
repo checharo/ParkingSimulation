@@ -1,8 +1,5 @@
+
 package simulation;
-
-
-import java.awt.Color;
-
 
 /**
  *
@@ -57,8 +54,8 @@ public abstract class Sensor {
     public abstract Color[] getLEDs();
     public abstract void sendMessage(Sensor s, Message m);
     public abstract void sendReply(Sensor s, Message m);
-    public abstract void receiveMessage(Message m);
     public abstract void sendToCentral(Message m);
+    public abstract void receiveMessage(Message m);
 
     /**
      * @return the left

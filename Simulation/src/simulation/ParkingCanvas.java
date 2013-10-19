@@ -1,7 +1,6 @@
 package simulation;
 
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import javax.swing.JPanel;
@@ -47,7 +46,7 @@ import javax.swing.JPanel;
                 
                 if (matrix[i][j] == null) {
                 /* If null paint a street according to neighbors */   
-                    g.setColor(new Color(255, 255, 255));
+                    g.setColor(getAWTColor(new Color(255, 255, 255)));
                     try {
                         if (matrix[i][j - 1] != null) {
                             g.drawRect(x, y, 1, sqHeight);
@@ -72,9 +71,9 @@ import javax.swing.JPanel;
                 /* Paint a sensor according to its properties */
                     Sensor sensor = matrix[i][j];
                     if (sensor.isSelected())
-                        g.setColor(new Color(0, 0, 150));
+                        g.setColor(getAWTColor(new Color(0, 0, 150)));
                     else
-                        g.setColor(new Color(0, 0, 0));
+                        g.setColor(getAWTColor(new Color(0, 0, 0)));
                     
                     g.fillRect(x + 3, y + 3, sqWidth - 6, sqHeight - 6);
                     
@@ -82,10 +81,10 @@ import javax.swing.JPanel;
                     int miniHeight = sqHeight / 5;
                     /* We now just use LEDs 6 and 7 */
                     Color[] leds = sensor.getLEDs();
-                    g.setColor(leds[6]);
+                    g.setColor(getAWTColor(leds[6]));
                     g.fillRect(x + miniWidth, y + miniHeight * 3, miniWidth, 
                             miniHeight);
-                    g.setColor(leds[7]);
+                    g.setColor(getAWTColor(leds[7]));
                     g.fillRect(x + miniWidth * 3, y + miniHeight * 3, miniWidth, 
                             miniHeight);
                 }
@@ -129,6 +128,15 @@ import javax.swing.JPanel;
         }
         
         return null;
+    }
+    
+    /**
+     * Returns a AWT Color Object from our own Color class
+     * @param color
+     * @return 
+     */
+    public java.awt.Color getAWTColor(Color color) {
+        return new java.awt.Color(color.getR(), color.getG(), color.getB());
     }
     
 }

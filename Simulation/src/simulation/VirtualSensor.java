@@ -1,7 +1,5 @@
 package simulation;
 
-
-import java.awt.Color;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -27,6 +25,12 @@ public class VirtualSensor extends Sensor {
     private Central central;
     /* A queue for incoming messages */
     private Queue<Message> messages;
+    
+    /* Flag for determining if the event thread is waiting or not */
+    private boolean waiting = false;
+    
+    /* Delay time of communication for the simulation of Virtual Sensors */
+    private static final int DELAY = 150;
     
     /**
      * Initializes a virtual sensor with no connections. The initial state of
@@ -66,7 +70,7 @@ public class VirtualSensor extends Sensor {
     }
     
     @Override
-    public synchronized void sendToCentral(Message m) {
+    public void sendToCentral(Message m) {
         
         if (toCentral == this) {
             m.push(this);
@@ -83,15 +87,13 @@ public class VirtualSensor extends Sensor {
      * @param m 
      */
     @Override
-    public synchronized void sendMessage(Sensor s, Message m) {
-        System.out.println(System.currentTimeMillis() + " " + id + " -> " + s.getId() + " " + m.getHeader());
+    public void sendMessage(Sensor s, Message m) {
         Color previousColor = leds[6];
         this.setLED(6, SENDING);
-        try { Thread.sleep(300); } catch (InterruptedException ie) {}
+        try { Thread.sleep(DELAY); } catch (InterruptedException ie) {}
         m.push(this);
-        System.out.println(System.currentTimeMillis() + " " + id + " Calling receive message");
         s.receiveMessage(m);
-        
+
         this.setLED(6, previousColor);
     }
     
@@ -102,12 +104,10 @@ public class VirtualSensor extends Sensor {
      * @param m 
      */
     @Override
-    public synchronized void sendReply(Sensor s, Message m) {
-        System.out.println(System.currentTimeMillis() + " " + id + " -> " + s.getId() + " " + m.getHeader());
+    public void sendReply(Sensor s, Message m) {
         Color previousColor = leds[6];
         this.setLED(6, SENDING);
-        try { Thread.sleep(300); } catch (InterruptedException ie) {}
-        System.out.println(System.currentTimeMillis() + " " + id + " calling receive message");
+        try { Thread.sleep(DELAY); } catch (InterruptedException ie) {}
         s.receiveMessage(m);
         
         this.setLED(6, previousColor);
@@ -120,11 +120,9 @@ public class VirtualSensor extends Sensor {
      * @param m 
      */
     @Override
-    public synchronized void receiveMessage(Message m) {
-        System.out.println(System.currentTimeMillis() + " " + id + " receives message " + m.getHeader());
+    public void receiveMessage(Message m) {
         messages.add(m);
-        eventThread.notifyEvent();
-        System.out.println(System.currentTimeMillis() + " " + "After notifyEvent");
+        notifyEvent();
     }
     
     @Override
@@ -155,11 +153,10 @@ public class VirtualSensor extends Sensor {
      * Processes messages found in the message queue
      * @param m Message to process
      */
-    public synchronized void processMessage(Message m) {
-        System.out.println(System.currentTimeMillis() + " " + id + " processes " + m.getHeader());
+    public void processMessage(Message m) {
         Color previousColor = leds[6];
         this.setLED(6, RECEIVING);
-        try { Thread.sleep(300); } catch (InterruptedException ie) {}
+        try { Thread.sleep(DELAY); } catch (InterruptedException ie) {}
         if (m.getHeader().startsWith("reply")) {
             Sensor top = m.pop();
             if (top == null) {
@@ -219,8 +216,13 @@ public class VirtualSensor extends Sensor {
     /**
      * Necessary to notify the event thread from another class.
      */
-    public synchronized void notifyEvent() {
-        eventThread.notifyEvent();
+    public void notifyEvent() {
+        if (waiting)
+            eventThread.notifyEvent();
+    }
+    
+    public void setWaiting(boolean b) {
+        waiting = b;
     }
     
     /* Class that implements the thread that is listening to simulated events. 
@@ -251,9 +253,10 @@ public class VirtualSensor extends Sensor {
             
             if (messages.size() == 0) {
                 /* If there are messages do not wait */
-                System.out.println(System.currentTimeMillis() + " " + owner.getId() + " waits");
+                /* Instead of waiting, sleep 100 ms to avoid notify deadlocks */
+                owner.setWaiting(true);
                 wait();
-                System.out.println(System.currentTimeMillis() + " " + owner.getId() + " is notified");
+                owner.setWaiting(false);
             }
             /* Event has happened */
             /* Evaluate if the light has changed */
@@ -278,15 +281,17 @@ public class VirtualSensor extends Sensor {
         }
         
         public synchronized void notifyEvent() {
-            System.out.println(System.currentTimeMillis() + " " + "beforeNotify");
             notify();
-            System.out.println(System.currentTimeMillis() + " " + "afterNotify");
         }
     }
     
     @Override
     public String toString() {
         return "VirtualSensor" + getId();
+    }
+    
+    public Queue<Message> getMessages() {
+        return messages;
     }
     
 }

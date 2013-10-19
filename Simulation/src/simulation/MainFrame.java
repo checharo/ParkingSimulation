@@ -247,12 +247,9 @@ public class MainFrame extends javax.swing.JFrame {
         if (selectedSensor instanceof VirtualSensor) {
             VirtualSensor vsensor = (VirtualSensor) selectedSensor;
             vsensor.setCurrentLight(light);
-            System.out.println("isAlive?");
             if (vsensor.getEventThread() != null 
                     && vsensor.getEventThread().isAlive()) {
-                System.out.println("before notify");
                 vsensor.notifyEvent();
-                System.out.println("after notify");
             } else {
                 JOptionPane.showMessageDialog(this, 
                     "The Virtual Sensor is not running. Please restart application.", 
