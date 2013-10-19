@@ -13,11 +13,11 @@ Content:vacant
 Header:reply-ok
 Content:
 
-/* The message couldn't be delivered to central */
-Header:reply-error
-Content: <detail>
+/* If central or a node does not recognize a header, it sends back the message */
+Header:reply-error-unknownmessage
+Content: <previous-header>:<previous message>
 
-/* The message sent could not be understood by central or the intermediary nodes */
-Header:reply-error
-Content: unkownmessage
+/* The message could not be delivered to central, sends back the error detail */
+Header:reply-error-tocentral
+Content: <detail>
 

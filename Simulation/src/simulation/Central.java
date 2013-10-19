@@ -9,11 +9,25 @@ public class Central {
     
     /* Represents the sensor matrix. */
     private Sensor[][] matrix;
+    /* The number of spaces available and the number of cars available */
+    private int spaces;
+    private int cars;
+    /* The reference to the GUI */
     private MainFrame mainFrame;
     
     public Central(Sensor[][] matrix, MainFrame mainFrame) {
         this.matrix = matrix;
         this.mainFrame = mainFrame;
+        
+        /* We calculate the free spaces available, at first every space is available */
+        spaces = 0;
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                if (matrix[i][j] != null)
+                    spaces++;
+            }
+        }
+        cars = 0;      
     }
     
     public Sensor[][] getMatrix() {
@@ -27,16 +41,52 @@ public class Central {
      * @param m The message received.
      */
     public synchronized void recieveMessage(Message m) {
-        /* DO NOTHING XD!!! ... for the moment */
+        /* Sensor to reply to */
+        Sensor top = m.pop();
+        
+        /* Process message and prepare reply */
+        if (m.getHeader().equals("tocentral-parkingstate")) {
+            if (m.getContent().equals("vacant")) {
+                /* One space is liberated and a additional car is circulating */
+                spaces++;
+                cars++;
+                mainFrame.refreshState();
+                m.setHeader("reply-ok");
+                m.setContent("");
+            } else if (m.getContent().equals("occupied")) {
+                /* One space is occupied and one less car is circulating */
+                spaces--;
+                cars--;
+                mainFrame.refreshState();
+                m.setHeader("reply-ok");
+                m.setContent("");
+            } else {
+                /* Couldn't understand message */
+                String header = m.getHeader();
+                m.setHeader("reply-error-unknownmessage");
+                m.setContent(header + ":" + m.getContent());
+            }
+        }
         
         /* Reply back acknowledge */
-        Sensor top = m.pop();
-        m.setHeader("reply-ok");
-        m.setContent("");
         top.receiveMessage(m);
     }
     
     public synchronized void refreshCanvas() {
         mainFrame.repaintCanvas();
+    }
+
+    /**
+     * @return the spaces
+     */
+    public int getSpaces() {
+        return spaces;
+    }
+
+    /**
+     * @return the cars
+     */
+    public int getCars() {
+        return cars;
     }
 }

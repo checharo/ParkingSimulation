@@ -1,5 +1,5 @@
-package simulation;
 
+package simulation;
 
 import java.awt.Color;
 import java.io.FileNotFoundException;
@@ -77,6 +77,8 @@ public class MainFrame extends javax.swing.JFrame {
         
         /* Disable certain GUI elements until appropiate */
         reloadSensorProperties();
+        /* Set the value for available spaces and cars circulating */
+        refreshState();
     }
 
     /**
@@ -94,6 +96,10 @@ public class MainFrame extends javax.swing.JFrame {
         lblLight = new javax.swing.JLabel();
         txtLight = new javax.swing.JTextField();
         btnLight = new javax.swing.JButton();
+        lblAvailableSpaces = new javax.swing.JLabel();
+        lblAvailableSpacesValue = new javax.swing.JLabel();
+        lblCarsCirculating = new javax.swing.JLabel();
+        lblCarsCirculatingValue = new javax.swing.JLabel();
         pnlParking = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -131,11 +137,26 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
+        lblAvailableSpaces.setText("Available Spaces");
+
+        lblAvailableSpacesValue.setFont(new java.awt.Font("Lucida Grande", 0, 24)); // NOI18N
+        lblAvailableSpacesValue.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblAvailableSpacesValue.setText("0");
+        lblAvailableSpacesValue.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        lblAvailableSpacesValue.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+
+        lblCarsCirculating.setText("Cars Circulating");
+
+        lblCarsCirculatingValue.setFont(new java.awt.Font("Lucida Grande", 0, 24)); // NOI18N
+        lblCarsCirculatingValue.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblCarsCirculatingValue.setText("0");
+        lblCarsCirculatingValue.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+
         org.jdesktop.layout.GroupLayout pnlOptionsLayout = new org.jdesktop.layout.GroupLayout(pnlOptions);
         pnlOptions.setLayout(pnlOptionsLayout);
         pnlOptionsLayout.setHorizontalGroup(
             pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(pnlOptionsLayout.createSequentialGroup()
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, pnlOptionsLayout.createSequentialGroup()
                 .addContainerGap()
                 .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(pnlOptionsLayout.createSequentialGroup()
@@ -148,20 +169,33 @@ public class MainFrame extends javax.swing.JFrame {
                         .add(txtLight, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(btnLight)))
-                .addContainerGap(472, Short.MAX_VALUE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 362, Short.MAX_VALUE)
+                .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
+                    .add(lblAvailableSpaces, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(lblAvailableSpacesValue, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, lblCarsCirculating, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, lblCarsCirculatingValue, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         pnlOptionsLayout.setVerticalGroup(
             pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(pnlOptionsLayout.createSequentialGroup()
                 .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(lblSensor)
-                    .add(lblSensorValue))
+                    .add(lblSensorValue)
+                    .add(lblAvailableSpaces))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(lblLight)
-                    .add(txtLight, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(btnLight))
-                .add(0, 95, Short.MAX_VALUE))
+                .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(pnlOptionsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                        .add(lblLight)
+                        .add(txtLight, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .add(btnLight))
+                    .add(lblAvailableSpacesValue))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(lblCarsCirculating)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(lblCarsCirculatingValue)
+                .add(0, 37, Short.MAX_VALUE))
         );
 
         pnlParking.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -262,6 +296,15 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_setLight
 
+    /**
+     * Refreshes the label for available spaces and cars circulating
+     */
+    public synchronized void refreshState() {
+        lblAvailableSpacesValue.setText(central.getSpaces() + "");
+        lblCarsCirculatingValue.setText(central.getCars() + "");
+        repaintCanvas();
+    }
+    
     public synchronized void repaintCanvas() {
         canvas.repaint();
     }
@@ -334,6 +377,10 @@ public class MainFrame extends javax.swing.JFrame {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnLight;
+    private javax.swing.JLabel lblAvailableSpaces;
+    private javax.swing.JLabel lblAvailableSpacesValue;
+    private javax.swing.JLabel lblCarsCirculating;
+    private javax.swing.JLabel lblCarsCirculatingValue;
     private javax.swing.JLabel lblLight;
     private javax.swing.JLabel lblSensor;
     private javax.swing.JLabel lblSensorValue;
