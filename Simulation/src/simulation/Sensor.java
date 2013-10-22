@@ -21,7 +21,7 @@ public abstract class Sensor {
     
     /* Indicates if the sensor is selected in the GUI */
     protected boolean selected;
-
+  
     public Sensor() {}
     
     /* Is the id of the sensor, for virtual the ij value of the matrix, or

@@ -19,10 +19,12 @@ import java.util.StringTokenizer;
  */
 public class MatrixUtil {
     
+    
     /**
      * Reads an input file to build the Sensor Matrix. In the input file the 
      * nodes represented by 0 are connected to Central, any other number is the 
      * distance to central. A - means that there is no node there (street).
+     * For the Real sensor manage the following format "distance_to_centra|address" 
      * @param file The name of the input file
      * @return A bi-dimensional matrix of Sensor objects, with their neighbors
      * and toCentral nodes already set. 
@@ -67,9 +69,19 @@ public class MatrixUtil {
             String[] row = temp.get(i);
             for (int j = 0; j < pre[i].length; j++) {
                 pre[i][j] = row[j];
-                if (!pre[i][j].equals("-")) {
+                if(pre[i][j].contains(";")){
+                    String[] infoReal = pre[i][j].split(";");
+                    //mantain just the number of positions
+                    pre[i][j] = infoReal[0];
+                    //initiallize the real sensor with its address
+                    RealSensor real = new RealSensor("(" + i + "," + j + ")");
+                    real.setAddress(infoReal[1]);
+                    res[i][j] = real;
+                } 
+                else if (!pre[i][j].equals("-")) {
                     res[i][j] = new VirtualSensor("(" + i + "," + j + ")");
-                } else {
+                }
+                else {
                     res[i][j] = null;
                 }
             }
@@ -88,7 +100,7 @@ public class MatrixUtil {
                 if (ij == null) continue;
                 
                 int proximity;
-                proximity = Integer.parseInt(pre[i][j]);
+                proximity = getProximity(pre[i][j]);
                 if (proximity == 0) {
                     ij.setToCentral(ij);
                 }
@@ -97,7 +109,7 @@ public class MatrixUtil {
                     if (!pre[i][j + 1].equals("-")) {
                         Sensor right = res[i][j + 1];
                         ij.setRight(right);
-                        int rprox = Integer.parseInt(pre[i][j + 1]);
+                        int rprox = getProximity(pre[i][j + 1]);
                         if (rprox < proximity) ij.setToCentral(right);
                     }
                 } catch (ArrayIndexOutOfBoundsException aioobe) {}
@@ -105,7 +117,7 @@ public class MatrixUtil {
                     if (!pre[i][j - 1].equals("-")) {
                         Sensor left = res[i][j - 1];
                         ij.setLeft(left);
-                        int lprox = Integer.parseInt(pre[i][j - 1]);
+                        int lprox = getProximity(pre[i][j - 1]);
                         if (lprox < proximity) ij.setToCentral(left);
                     }
                 } catch (ArrayIndexOutOfBoundsException aioobe) {}
@@ -113,7 +125,7 @@ public class MatrixUtil {
                     if (!pre[i - 1][j].equals("-")) {
                         Sensor back = res[i - 1][j];
                         ij.setBack(back);
-                        int bprox = Integer.parseInt(pre[i - 1][j]);
+                        int bprox = getProximity(pre[i - 1][j]);
                         if (bprox < proximity) ij.setToCentral(back);
                     } 
                 } catch (ArrayIndexOutOfBoundsException aioobe) {}
@@ -121,7 +133,7 @@ public class MatrixUtil {
                     if (!pre[i + 1][j].equals("-")) {
                         Sensor back = res[i + 1][j];
                         ij.setBack(back);
-                        int bprox = Integer.parseInt(pre[i + 1][j]);
+                        int bprox = getProximity(pre[i + 1][j]);
                         if (bprox < proximity) ij.setToCentral(back);
                     } 
                 } catch (ArrayIndexOutOfBoundsException aioobe) {} 
@@ -132,7 +144,24 @@ public class MatrixUtil {
                 }
             }
         }
-        
         return res;
+    }
+    public RealSensor findSensorByAddress(Sensor[][] matrix,String address){
+        
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                if (matrix[i][j] instanceof RealSensor && ((RealSensor) matrix[i][j]).getAddress().equals(address)){
+                    return (RealSensor)matrix[i][j];
+                }
+            }
+        }
+        return null;
+    } 
+    public static int getProximity(String valProximity){
+        if(valProximity.contains(";")){
+            String[] values = valProximity.split(";");
+            return Integer.parseInt(values[0]);
+        }
+        return Integer.parseInt(valProximity);
     }
 }

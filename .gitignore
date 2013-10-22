@@ -1,3 +1,4 @@
 Simulation/build/*
 Simulation/nbproject/*
 Simulation/build.xml
+/Simulation/dist/

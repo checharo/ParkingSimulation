@@ -3,7 +3,6 @@ package simulation;
 
 import java.util.Vector;
 
-
 /**
  *
  * @author cesar
@@ -11,9 +10,17 @@ import java.util.Vector;
 public class Message {
     
     private String header;
+
+    public void setStack(Vector stack) {
+        this.stack = stack;
+    }
     private String content;
     /* Stack for routing back a reply to a message or stop flooding */
     private Vector stack;
+
+    public Vector getStack() {
+        return stack;
+    }
 
     public Message() {
         this.stack = new Vector();

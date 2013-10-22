@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import javax.swing.JOptionPane;
+import realSensor.MessageReceptor;
 
 
 /**
@@ -36,6 +37,8 @@ public class MainFrame extends javax.swing.JFrame {
      * it quits the application.
      */
     private void initApplication() {
+        
+
         String file = "";
         try {    
             file = JOptionPane.showInputDialog(this, "Plase provide a parking "
@@ -44,6 +47,11 @@ public class MainFrame extends javax.swing.JFrame {
                     JOptionPane.QUESTION_MESSAGE);
             if (file.equals("")) file = "parking.csv";
             matrix = MatrixUtil.readMatrix(file);
+            /* Initiate the central logic of the Sensor Netork and pass the reference */
+            central = new Central(matrix, this);
+            /* Initiate the thread that receive the messages of the real sensor */
+            Thread threadReceptor = new MessageReceptor(central);
+            threadReceptor.start();
         } catch (FileNotFoundException fnfe) {
             JOptionPane.showMessageDialog(this, 
                     "The file " + file + " could not be found", "Error", 
@@ -64,14 +72,18 @@ public class MainFrame extends javax.swing.JFrame {
         canvas.setLocation(2, 2);
         pnlParking.add(canvas);
         
-        /* Initiate the central logic of the Sensor Netork and pass the reference */
-        central = new Central(matrix, this);
+
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
                 if (matrix[i][j] instanceof VirtualSensor) {
                     VirtualSensor vsensor = (VirtualSensor) matrix[i][j];
                     vsensor.setCentral(central);
                 }
+                if (matrix[i][j] instanceof RealSensor) {
+                    RealSensor rsensor = (RealSensor) matrix[i][j];
+                    rsensor.setCentral(central);
+                }
+
             }
         }
         
@@ -296,11 +308,7 @@ public class MainFrame extends javax.swing.JFrame {
             }
         }
     }
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
+    public static void execute(){
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -331,6 +339,13 @@ public class MainFrame extends javax.swing.JFrame {
                 new MainFrame().setVisible(true);
             }
         });
+
+    }
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        execute();
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnLight;

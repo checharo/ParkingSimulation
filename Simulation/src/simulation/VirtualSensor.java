@@ -18,7 +18,7 @@ public class VirtualSensor extends Sensor {
     public static final Color OFF = new Color(127, 127, 127);
     public static final Color ERROR = new Color(255, 204, 51);
     public static final Color SENDING = new Color(51, 204, 255);
-    public static final Color RECEIVING = new Color(204, 204, 255);
+    public static final Color RECEIVING = new Color(255, 51, 229);
     
     private EventThread eventThread;
     /* A reference to the central logic */
@@ -71,7 +71,6 @@ public class VirtualSensor extends Sensor {
     
     @Override
     public void sendToCentral(Message m) {
-        
         if (toCentral == this) {
             m.push(this);
             central.recieveMessage(m);
@@ -88,6 +87,7 @@ public class VirtualSensor extends Sensor {
      */
     @Override
     public void sendMessage(Sensor s, Message m) {
+        System.out.println("class of the sensor to send message:"+s.getClass());
         Color previousColor = leds[6];
         this.setLED(6, SENDING);
         try { Thread.sleep(DELAY); } catch (InterruptedException ie) {}

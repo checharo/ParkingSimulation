@@ -73,7 +73,10 @@ import javax.swing.JPanel;
                     if (sensor.isSelected())
                         g.setColor(getAWTColor(new Color(0, 0, 150)));
                     else
-                        g.setColor(getAWTColor(new Color(0, 0, 0)));
+                        if(sensor instanceof RealSensor)
+                            g.setColor(getAWTColor(new Color(64, 64, 64)));
+                        else    
+                            g.setColor(getAWTColor(new Color(0, 0, 0)));
                     
                     g.fillRect(x + 3, y + 3, sqWidth - 6, sqHeight - 6);
                     
