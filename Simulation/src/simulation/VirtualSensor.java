@@ -1,6 +1,7 @@
 package simulation;
 
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 
 /**
@@ -157,23 +158,30 @@ public class VirtualSensor extends Sensor {
         Color previousColor = leds[6];
         this.setLED(6, RECEIVING);
         try { Thread.sleep(DELAY); } catch (InterruptedException ie) {}
+        
         if (m.getHeader().startsWith("reply")) {
             Sensor top = m.pop();
             if (top == null) {
                 /* This message is intended for this Sensor */
-                if (m.getHeader().equals("reply-error")) {
+                if (m.getHeader().equals("reply-error-tocentral")) {
                     /* Message couldn't reach central, display error */
                     this.setLED(6, ERROR);
-                    System.out.println(System.currentTimeMillis() + " " + "Could not reach central: " + 
-                            m.getHeader() + ":" + m.getContent());
+                    System.out.println(this.toString() + ": " 
+                        + "Could not reach central: " + m.getContent());
+                } else if (m.getHeader().equals("reply-error-unknownmessage")) {
+                    /* A node or central couldn't understand the message */
+                    this.setLED(6, ERROR);
+                    System.out.println(this.toString() + ": " 
+                        + "Message was not understood: " + m.getContent());
                 } else if (m.getHeader().equals("reply-ok")) {
                     /* Else nothing special should happen */
                     this.setLED(6, previousColor);
                 } else {
-                    /* Unknown message */
+                    /* An unkown message arrived as a reply */
                     this.setLED(6, ERROR);
-                    System.out.println(System.currentTimeMillis() + " " + "Unkown message received: " + 
-                            m.getHeader() + ":" + m.getContent());
+                    System.out.println(this.toString() + ": " 
+                            + "Unkown message received: " + m.getHeader() + ":" 
+                            + m.getContent());
                 }
             } else {
                 /* Forward the reply to the corresponding Sensor */
@@ -186,7 +194,8 @@ public class VirtualSensor extends Sensor {
         } else {
             /* If an unkown message is received, reply to sender with error */
             Sensor top = m.pop();
-            sendReply(top, new Message("reply-error", "unkownmessage"));
+            sendReply(top, new Message("reply-error-unknownmessage", 
+                m.getHeader() + ":" + m.getContent()));
             this.setLED(6, previousColor);
         }
     }
@@ -274,10 +283,13 @@ public class VirtualSensor extends Sensor {
             previousLight = currentLight; 
             
             /* Process messages in the queue */
-            Message m = messages.poll();
-            if (m != null)            
-                owner.processMessage(m);
-
+            try {
+                Message m = messages.poll();
+                if (m != null)            
+                    owner.processMessage(m);
+            } catch (NoSuchElementException nsee) {
+                /* Just continue with execution */
+            }
         }
         
         public synchronized void notifyEvent() {

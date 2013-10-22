@@ -1,0 +1,23 @@
+
+/* In this file we can find the type of messages that the sensors and central will exchange */
+
+/* Notify central that a parking state was occupied */ 
+Header:tocentral-parkingstate
+Content:occupied
+
+/* Notify central that a parking state is vacant */
+Header:tocentral-parkingstate
+Content:vacant
+
+/* Central read message */
+Header:reply-ok
+Content:
+
+/* If central or a node does not recognize a header, it sends back the message */
+Header:reply-error-unknownmessage
+Content: <previous-header>:<previous message>
+
+/* The message could not be delivered to central, sends back the error detail */
+Header:reply-error-tocentral
+Content: <detail>
+
