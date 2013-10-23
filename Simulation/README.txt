@@ -1,4 +1,3 @@
-
 ********************************Parking application***********************
 The code attached is an application that allows counting the number
 of spot that are occupied or available in a parking.
@@ -44,6 +43,8 @@ The next lines shows some examples to configure the file.
 
 This model is possible because the sensors that  are deployed in a parking are always 
 located in a static way and does not need to be changed frequently.
+
+*******Prerrequisites
 
 ***************************Light Sensor Calibration***********************
 To use light sensors to predict if a car was allocated in a parking spot,
