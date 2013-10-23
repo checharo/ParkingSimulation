@@ -86,7 +86,24 @@ public class VirtualSensor extends Sensor {
             m.push(this);
             central.recieveMessage(m);
         } else {
-            sendMessage(toCentral, m);
+            /* Message couldn't reach central, try a different path. Check it's not in the reply path as well. */
+            if (!m.getStack().contains(toCentral)) {
+                sendMessage(toCentral, m);
+            } else {
+                /* Add the attempt to the memory in case we have to try another path */
+                if (!attempts.containsKey(m.getID())) {
+                      ArrayList<Sensor> recipients = new ArrayList<Sensor>();
+                      recipients.add(toCentral);
+                      attempts.put(m.getID(), new Attempt(m.myClone(), recipients));
+                } else {
+                   ArrayList<Sensor> recipients = attempts.get(m.getID()).getSensors();
+                   recipients.add(toCentral);
+                }
+                /* Message could not be sent, reply error */
+                m.setContent("");
+                m.setHeader(Message.REPLY_ERROR_CENTRAL);
+                this.processMessage(m);
+            }
         }
     }
     
@@ -98,6 +115,7 @@ public class VirtualSensor extends Sensor {
      */
     @Override
     public void sendMessage(Sensor s, Message m) {
+        System.out.println(id + " sends to " + s.getId() + " message " + m);
         Color previousColor = leds[6];
         this.setLED(6, SENDING);
         try { Thread.sleep(DELAY); } catch (InterruptedException ie) {}
@@ -119,7 +137,6 @@ public class VirtualSensor extends Sensor {
             /* Message could not be sent, reply error */
             m.setContent("");
             m.setHeader(Message.REPLY_ERROR_CENTRAL);
-            
             System.out.println("pop(" + m.pop() + ")");
             this.processMessage(m);
         }
@@ -135,6 +152,7 @@ public class VirtualSensor extends Sensor {
      */
     @Override
     public void sendReply(Sensor s, Message m) {
+        System.out.println(id + " replies to " + s.getId() + " message " + m);
         Color previousColor = leds[6];
         this.setLED(6, SENDING);
         try { Thread.sleep(DELAY); } catch (InterruptedException ie) {}
@@ -194,9 +212,10 @@ public class VirtualSensor extends Sensor {
      * @param m Message to process
      */
     public void processMessage(Message m) {
-        System.out.println(id + ": proccesses message: " + m);
-        Color previousColor = leds[6];
+        System.out.println(id + " processes: " + m);
+        Color previousColor = leds[6];        
         this.setLED(6, RECEIVING);
+        System.out.println("a");
         try { Thread.sleep(DELAY); } catch (InterruptedException ie) {}
         
         if (m.getHeader().startsWith("reply")) {
@@ -206,13 +225,6 @@ public class VirtualSensor extends Sensor {
                 if (m.getHeader().equals("reply-error-tocentral")) {
                     /* Message couldn't reach central, try a different path. Check it's not in the reply path as well. */
                     Attempt attempt = attempts.get(m.getID());
-                    if (attempt == null) {
-                        /* else there are no options left, display an error */
-                        this.setLED(6, ERROR);
-                        System.out.println(this.toString() + ": "
-                                + "Could not reach central: " + m.getContent());
-                        return;
-                    }
                     ArrayList<Sensor> attempted = attempt.getSensors();
                     if (attempted != null) {
                         if (right != null && !attempted.contains(right) && !m.getStack().contains(right)) {
