@@ -8,10 +8,8 @@ import com.sun.spot.io.j2me.radiogram.RadiogramConnection;
 import java.util.Vector;
 import javax.microedition.io.Connector;
 import javax.microedition.io.Datagram;
-import simulation.Color;
 import simulation.Message;
 import simulation.Sensor;
-import simulation.VirtualSensor;
 import simulation.RealSensor;
 
 /**
@@ -21,12 +19,12 @@ import simulation.RealSensor;
 public class MessageSender {
     private static final int PORT = 67;
  
-    public void sendMessage(RealSensor sensor, Message message){
+    public void sendMessage(RealSensor sensor, Message message) throws Exception{
+        RadiogramConnection rCon = (RadiogramConnection) (Connector.open("radiogram://"+sensor.getAddress()+":"+PORT));
         try {
             System.out.println("Send in Real Message");
-            RadiogramConnection radioConn = (RadiogramConnection) (Connector.open("radiogram://"+sensor.getAddress()+":"+PORT));
             System.out.println("address:"+"radiogram://"+sensor.getAddress()+":"+PORT);
-            Datagram datagram = radioConn.newDatagram(100);
+            Datagram datagram = rCon.newDatagram(rCon.getMaximumLength());
             datagram.reset();
             Vector stack = message.getStack();
             String strStack = "";
@@ -46,18 +44,21 @@ public class MessageSender {
                 strStack = strStack.replace(")", "");
             }
             System.out.println("stack2"+strStack);
+            datagram.writeUTF(message.getID());
             datagram.writeUTF(message.getHeader());
             datagram.writeUTF(message.getContent());
-            //datagram.writeUTF(idIni);
             datagram.writeUTF(strStack);
-            System.out.println("send address:"+sensor.getAddress()+" header:"+message.getHeader()+" content:"+message.getContent()+" stack:"+message.getStack());        
-            radioConn.send(datagram);
+            System.out.println("idmsg:"+message.getID()+"send address:"+sensor.getAddress()+" header:"+message.getHeader()+" content:"+message.getContent()+" stack:"+message.getStack());        
+            rCon.send(datagram);
             System.out.println("send");
-            radioConn.close();    
             
         } catch(Exception ex) {
-            sensor.setLED(6, RealSensor.ERROR);
-            ex.printStackTrace();
+            message.setHeader(Message.REPLY_ERROR_CENTRAL);
+            ex.getStackTrace();
+            throw ex;
+        }
+        finally{
+            rCon.close();
         }
     }
 }

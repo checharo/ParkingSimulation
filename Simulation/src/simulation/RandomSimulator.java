@@ -11,7 +11,7 @@ import javax.swing.JOptionPane;
 public class RandomSimulator extends Thread {
     
     /* How quick will it generate a new input */
-    private static final int PACE = 100;
+    private static final int PACE = 300;
     /* A reference to the Central logic. */
     private Central central;
     

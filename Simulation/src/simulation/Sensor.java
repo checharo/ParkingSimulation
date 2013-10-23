@@ -55,7 +55,7 @@ public abstract class Sensor {
     public abstract void sendMessage(Sensor s, Message m);
     public abstract void sendReply(Sensor s, Message m);
     public abstract void sendToCentral(Message m);
-    public abstract void receiveMessage(Message m);
+    public abstract void receiveMessage(Message m)throws Exception;
 
     /**
      * @return the left
@@ -140,5 +140,11 @@ public abstract class Sensor {
     public void setId(String id) {
         this.id = id;
     }
-    
+    @Override
+    public boolean equals(Object sensor){
+        if(((Sensor)sensor).getId().equals(this.id)){
+            return true;
+        }
+        return false;
+    }
 }

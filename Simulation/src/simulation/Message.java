@@ -8,7 +8,8 @@ import java.util.Vector;
  * @author cesar
  */
 public class Message {
-    
+    public static String REPLY_ERROR_CENTRAL = "reply-error-tocentral"; 
+    private String id;
     private String header;
 
     public void setStack(Vector stack) {
@@ -22,15 +23,17 @@ public class Message {
         return stack;
     }
 
-    public Message() {
+    public Message(String id) {
         this.stack = new Vector();
+	this.id = id;
     }
     
     /* Create a new Message with content */
-    public Message(String header, String content) {
+    public Message(String id, String header, String content) {
         this.header = header;
         this.content = content;
         this.stack = new Vector();
+	this.id = id;
     }
     
     /**
@@ -80,5 +83,31 @@ public class Message {
     public void printStack() {
         System.out.println(stack);
     }
+
+    /**
+     * @return the id
+     */
+    public String getID() {
+        return id;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setID(String id) {
+        this.id = id;
+    }
     
+    @Override
+    public String toString() {
+        return "Message(" + id + "," + header + ":" + content + "," + stack + ")";
+    }
+    
+    public Message myClone() {
+        Message m = new Message(id, header, content);
+        Vector newStack = (Vector) stack.clone();
+        m.setStack(newStack);
+        return m;
+    }
 }
+

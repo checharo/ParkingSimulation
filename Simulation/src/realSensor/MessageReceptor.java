@@ -51,13 +51,14 @@ public class MessageReceptor extends Thread{
                 Vector stack = null;
                 rCon.receive(dg);
                 String address =dg.getAddress();
+                String idMsg =dg.readUTF();
                 String header = dg.readUTF();
                 String content = dg.readUTF();
                 String strStack = dg.readUTF();
                 String id = dg.readUTF();
-                System.out.println("receive addres:"+address+" header:"+header+" content:"+content+" stack:"+strStack+" id:"+id);
+                System.out.println("id:"+id+"receive addres:"+address+" header:"+header+" content:"+content+" stack:"+strStack+" id:"+id);
                 //creating the message
-                Message message = new Message();
+                Message message = new Message(idMsg);
                 message.setHeader(header);
                 message.setContent(content);
                 stack = getStack(strStack);

@@ -1,8 +1,10 @@
 package simulation;
 
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+import java.util.ArrayList;
 
 /**
  *
@@ -32,6 +34,10 @@ public class VirtualSensor extends Sensor {
     
     /* Delay time of communication for the simulation of Virtual Sensors */
     private static final int DELAY = 150;
+
+    /* Saves the sensors which have been used as attempts to send a message when an error happens */
+    private Hashtable<String,Attempt> attempts;
+    private int messageCount;
     
     /**
      * Initializes a virtual sensor with no connections. The initial state of
@@ -47,6 +53,8 @@ public class VirtualSensor extends Sensor {
         currentLight = 50;
         previousLight = 50;
         messages = new LinkedList<Message>();
+        attempts = new Hashtable<String,Attempt>();
+        messageCount = 0;
     }
     
     /**
@@ -68,6 +76,8 @@ public class VirtualSensor extends Sensor {
         currentLight = 50;
         previousLight = 50;
         messages = new LinkedList<Message>();
+        attempts = new Hashtable<String,Attempt>();
+        messageCount = 0;
     }
     
     @Override
@@ -88,12 +98,31 @@ public class VirtualSensor extends Sensor {
      */
     @Override
     public void sendMessage(Sensor s, Message m) {
-        System.out.println("class of the sensor to send message:"+s.getClass());
         Color previousColor = leds[6];
         this.setLED(6, SENDING);
         try { Thread.sleep(DELAY); } catch (InterruptedException ie) {}
+        
+        /* Add the attempt to the memory in case we have to try another path */
+        if (!attempts.containsKey(m.getID())) {
+	      ArrayList<Sensor> recipients = new ArrayList<Sensor>();
+              recipients.add(s);
+	      attempts.put(m.getID(), new Attempt(m.myClone(), recipients));
+        } else {
+           ArrayList<Sensor> recipients = attempts.get(m.getID()).getSensors();
+           recipients.add(s);
+        }
+        /* Push this sensor into the response stack and send the message */
         m.push(this);
-        s.receiveMessage(m);
+        try {
+            s.receiveMessage(m);
+        } catch (Exception e) {
+            /* Message could not be sent, reply error */
+            m.setContent("");
+            m.setHeader(Message.REPLY_ERROR_CENTRAL);
+            
+            System.out.println("pop(" + m.pop() + ")");
+            this.processMessage(m);
+        }
 
         this.setLED(6, previousColor);
     }
@@ -109,8 +138,18 @@ public class VirtualSensor extends Sensor {
         Color previousColor = leds[6];
         this.setLED(6, SENDING);
         try { Thread.sleep(DELAY); } catch (InterruptedException ie) {}
-        s.receiveMessage(m);
-        
+        try {
+            s.receiveMessage(m);
+        } catch (Exception e) {
+            /* Reply could not be sent, show error */
+            previousColor = ERROR;
+            System.out.println(this.toString() + ": "
+                    + "Could not reply to message: " + m.getContent());
+        }
+
+        /* Remove the message from attempts memory */
+        attempts.remove(m.getID());
+           
         this.setLED(6, previousColor);
     }
     
@@ -155,6 +194,7 @@ public class VirtualSensor extends Sensor {
      * @param m Message to process
      */
     public void processMessage(Message m) {
+        System.out.println(id + ": proccesses message: " + m);
         Color previousColor = leds[6];
         this.setLED(6, RECEIVING);
         try { Thread.sleep(DELAY); } catch (InterruptedException ie) {}
@@ -164,24 +204,90 @@ public class VirtualSensor extends Sensor {
             if (top == null) {
                 /* This message is intended for this Sensor */
                 if (m.getHeader().equals("reply-error-tocentral")) {
-                    /* Message couldn't reach central, display error */
-                    this.setLED(6, ERROR);
-                    System.out.println(this.toString() + ": " 
-                        + "Could not reach central: " + m.getContent());
+                    /* Message couldn't reach central, try a different path. Check it's not in the reply path as well. */
+                    Attempt attempt = attempts.get(m.getID());
+                    if (attempt == null) {
+                        /* else there are no options left, display an error */
+                        this.setLED(6, ERROR);
+                        System.out.println(this.toString() + ": "
+                                + "Could not reach central: " + m.getContent());
+                        return;
+                    }
+                    ArrayList<Sensor> attempted = attempt.getSensors();
+                    if (attempted != null) {
+                        if (right != null && !attempted.contains(right) && !m.getStack().contains(right)) {
+                            m = attempts.get(m.getID()).getM();
+                            sendMessage(right, m);
+                        } else if (left != null && !attempted.contains(left) && !m.getStack().contains(left)) {
+                            m = attempts.get(m.getID()).getM();
+                            sendMessage(left, m);
+                        } else if (back != null && !attempted.contains(back) && !m.getStack().contains(back)) {
+                            m = attempts.get(m.getID()).getM();
+                            sendMessage(back, m);
+                        } else {
+                            /* else there are no options left, display an error */
+                            this.setLED(6, ERROR);
+                            System.out.println(this.toString() + ": "
+                                    + "Could not reach central: " + m.getContent());
+                            attempts.remove(m.getID());
+                        }
+                    } else {
+                        /* If there is no memory display an error */
+                        this.setLED(6, ERROR);
+                        System.out.println(this.toString() + ": "
+                                + "Could not reach central: " + m.getContent());
+                        /* Remove the message from memory */
+                        attempts.remove(m.getID());
+                    }
                 } else if (m.getHeader().equals("reply-error-unknownmessage")) {
                     /* A node or central couldn't understand the message */
                     this.setLED(6, ERROR);
-                    System.out.println(this.toString() + ": " 
-                        + "Message was not understood: " + m.getContent());
+                    System.out.println(this.toString() + ": "
+                            + "Message was not understood: " + m.getContent());
+                    /* Remove the message from memory */
+                    attempts.remove(m.getID());
                 } else if (m.getHeader().equals("reply-ok")) {
                     /* Else nothing special should happen */
                     this.setLED(6, previousColor);
+                    /* Remove the message from memory */
+                    attempts.remove(m.getID());
                 } else {
                     /* An unkown message arrived as a reply */
                     this.setLED(6, ERROR);
-                    System.out.println(this.toString() + ": " 
-                            + "Unkown message received: " + m.getHeader() + ":" 
+                    System.out.println(this.toString() + ": "
+                            + "Unkown message received: " + m.getHeader() + ":"
                             + m.getContent());
+                    /* Remove the message from memory */
+                    attempts.remove(m.getID());
+                }
+
+            } else if (m.getHeader().equals("reply-error-tocentral")) {
+                /* Message couldn't reach central, try a different path. Check it's not in the reply path as well. */
+                /* In this case we are not the author of the message so if no path is avaible, return to the next Sensor in the reply stack. */
+                ArrayList<Sensor> attempted = attempts.get(m.getID()).getSensors();
+                if (attempted != null) {
+                    if (right != null && !attempted.contains(right) && !m.getStack().contains(right) && !right.equals(top)) {
+                        m = attempts.get(m.getID()).getM();
+                        sendMessage(right, m);
+                    } else if (left != null && !attempted.contains(left) && !m.getStack().contains(left) && !left.equals(top)) {
+                        m = attempts.get(m.getID()).getM();
+                        sendMessage(left, m);
+                    } else if (back != null && !attempted.contains(back) && !m.getStack().contains(back) && !back.equals(top)) {
+                        m = attempts.get(m.getID()).getM();
+                        sendMessage(back, m);
+                    } else {
+                        /* else there are no options left, return to the next sensor in the reply stack */
+                        sendReply(top, m);
+                        attempts.remove(m.getID());
+                        this.setLED(6, previousColor);
+                    }
+                } else {
+                    /* If there is no memory display an error and return to the next sensor in the reply stack */
+                    this.setLED(6, ERROR);
+                    System.out.println(this.toString() + ": "
+                            + "Did not find attempt memory for message: " + m.getContent());
+                    sendReply(top, m);
+                    this.setLED(6, previousColor);
                 }
             } else {
                 /* Forward the reply to the corresponding Sensor */
@@ -194,7 +300,7 @@ public class VirtualSensor extends Sensor {
         } else {
             /* If an unkown message is received, reply to sender with error */
             Sensor top = m.pop();
-            sendReply(top, new Message("reply-error-unknownmessage", 
+            sendReply(top, new Message(m.getID(), "reply-error-unknownmessage", 
                 m.getHeader() + ":" + m.getContent()));
             this.setLED(6, previousColor);
         }
@@ -273,10 +379,10 @@ public class VirtualSensor extends Sensor {
             if (changed) {
                 occupied = !occupied;
                 if (occupied) {
-                    sendToCentral(new Message("tocentral-parkingstate", "occupied"));
+                    sendToCentral(new Message(generateID(), "tocentral-parkingstate", "occupied"));
                     setLED(7, Color.RED);
                 } else {
-                    sendToCentral(new Message("tocentral-parkingstate", "vacant"));
+                    sendToCentral(new Message(generateID(), "tocentral-parkingstate", "vacant"));
                     setLED(7, Color.GREEN);
                 }
             }
@@ -304,6 +410,12 @@ public class VirtualSensor extends Sensor {
     
     public Queue<Message> getMessages() {
         return messages;
+    }
+    
+    /* Generates an ID for each message */
+    private String generateID() {
+       messageCount++; 
+       return this.id + "_" + messageCount;
     }
     
 }

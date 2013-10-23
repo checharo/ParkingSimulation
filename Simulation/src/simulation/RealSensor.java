@@ -59,7 +59,7 @@ public class RealSensor extends Sensor{
         //MessageSender.sendMessage(sensor,msg);
     }
 
-    public void receiveMessage(Message msg) 
+    public void receiveMessage(Message msg) throws Exception 
     { 
         System.out.println("receiveMessage:RealSensor");
         MessageSender sender = new MessageSender();

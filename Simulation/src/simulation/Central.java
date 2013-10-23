@@ -1,9 +1,12 @@
 package simulation;
 
+import javax.swing.JOptionPane;
+
 
 /**
  * Represents the central control of the network. 
- * @author CÃ©sar MartÃ­nez D'Granda (cesarm@student.unimelb.edu.au)
+ * @author César Martínez D'Granda (cesarm@student.unimelb.edu.au)
+ * @author Diana Carolina Barreto Arias (dianaba@student.unimelb.edu.au)
  */
 public class Central {
     
@@ -67,7 +70,13 @@ public class Central {
         }
         
         /* Reply back acknowledge */
-        top.receiveMessage(m);
+        try {
+            top.receiveMessage(m);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, 
+                "There is problem with the connection with the Real Sensors.", "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     public synchronized void refreshCanvas() {
