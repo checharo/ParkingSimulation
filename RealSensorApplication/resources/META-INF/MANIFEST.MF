@@ -1,0 +1,8 @@
+MIDlet-Name: ParkingLot
+MIDlet-Version: 1.0.0
+MIDlet-Vendor: Parking Demo
+MIDlet-Description: Simulation application of a parking lot
+MIDlet-1: RealSensor, , com.parking.RealSensor
+MicroEdition-Profile: IMP-1.0
+MicroEdition-Configuration: CLDC-1.1
+MatrixFile: scenario1.csv
