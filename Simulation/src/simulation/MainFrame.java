@@ -50,7 +50,7 @@ public class MainFrame extends javax.swing.JFrame {
             /* If user selects cancel */
             if (file == null) System.exit(0); 
             if (file.equals("")) file = "parking.csv";
-            matrix = MatrixUtil.readMatrix(file);
+            matrix = MatrixUtil.readMatrix("maps/" + file);
             /* Initiate the central logic of the Sensor Netork and pass the reference */
             central = new Central(matrix, this);
             /* Initiate the thread that receive the messages of the real sensor */
